@@ -27,6 +27,15 @@ userRouter.put('/user', async (req, res) => {
         req.body.password = await bcrypt.hash(req.body.password, salt);
     }
 
+    if (req.body.email){
+        const email = await User.findOne({ email: req.body.email });
+        if (email) return res.status(400).json({ status: "error", message: "This email is already registered" });
+    }
+    if (req.body.username)
+    {
+        const user = await User.findOne({ username: req.body.username });
+        if (user) return res.status(400).json({ status: "error", message: "user name is already used." });
+    }
     try {
         const userUpdate = await User.findByIdAndUpdate(userId, req.body, { new: true }).select('-password');
         if (!userUpdate) {

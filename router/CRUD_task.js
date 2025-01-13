@@ -109,6 +109,8 @@ todoRouter.get('/task', async (req, res) => {
     try {
         const userId = req.user.id;
         const taskId = req.query.id;
+        const categoryName = req.query.cat ? req.query.cat.toLowerCase() : null;
+        const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
 
         const user = await User.findById(userId).populate({
         path: 'tasks',
@@ -133,6 +135,21 @@ todoRouter.get('/task', async (req, res) => {
                 });
             }
         }
+        
+        if (categoryName) {
+            tasks = tasks.filter((task) => task.category && task.category.name.toLowerCase() === categoryName);
+
+            if (tasks.length === 0) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: `No tasks found under the category '${categoryName}'`,
+                });
+            }
+        }
+
+        if (limit && !isNaN(limit) && limit > 0) {
+            tasks = tasks.slice(0, limit);
+        }
 
         res.status(200).json({
         status: 'success',
@@ -146,10 +163,11 @@ todoRouter.get('/task', async (req, res) => {
 });
 
 
-todoRouter.delete('/task/:id', async (req, res) => {
+todoRouter.delete('/task', async (req, res) => {
     try {
         const userId = req.user.id;
-        const taskId = req.params.id;
+        const taskId = req.query.taskid;
+        
         const user = await User.findById(userId).select('-password')
         if (!user) {
             return res.status(404).json({ status: 'error', message: 'User not found' });

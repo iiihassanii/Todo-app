@@ -13,6 +13,9 @@ register.post('/', async (req, res) => {
         const email = await User.findOne({ email: req.body.email });
         if (email) return res.status(400).json({ status: "error", message: "This email is already registered" });
 
+        const user = await User.findOne({ username: req.body.username });
+        if (user) return res.status(400).json({ status: "error", message: "user name is already used." });
+
 
         // Make hashed password
         const salt = await bcrypt.genSalt(10);
